@@ -26,6 +26,10 @@ static uint64_t total_processing_cycles = 0;
 extern QueueHandle_t DataWindowQueue;
 extern QueueHandle_t FeatureResultQueue;
 
+/* Static function prototypes */
+static void UpdateProcessingStats(uint32_t cycles, TickType_t time_ms);
+static void ReportPerformanceMetrics(void);
+
 /**
  * @brief DSP processing task - executes real-time signal processing
  * @param pvParameters: Task parameters (unused)

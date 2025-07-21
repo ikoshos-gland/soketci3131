@@ -46,8 +46,35 @@ extern "C" {
 #define STREAMING_STACK_SIZE             512
 #define MONITOR_STACK_SIZE               256
 
+/* Performance Monitoring Thresholds */
+#define CRITICAL_HEAP_THRESHOLD          4096   // Bytes
+#define CRITICAL_CPU_THRESHOLD           90     // Percent
+#define PROCESSING_DEADLINE_MS           2      // Milliseconds
+
+/* Cache Management Macros for STM32H7RS */
+#define CACHE_CLEAN_BY_ADDR(addr, size)  SCB_CleanDCache_by_Addr((uint32_t*)(addr), (int32_t)(size))
+#define CACHE_INVALIDATE_BY_ADDR(addr, size) SCB_InvalidateDCache_by_Addr((uint32_t*)(addr), (int32_t)(size))
+
+/* SIMD Alignment for ARM Cortex-M7 */
+#define SIMD_ALIGN_32                    __attribute__((aligned(32)))
+
+/* Debug Configuration */
+#define ENABLE_UART_DEBUG                1
+#define ENABLE_STACK_MONITORING          1
+#define DEBUG_PRINT(msg)                 do { if (ENABLE_UART_DEBUG) HAL_UART_Transmit(&huart1, (uint8_t*)(msg), strlen(msg), 100); } while(0)
+
+/* Feature Vector Configuration */
+#define NUM_TIME_FEATURES                6      // RMS, MAV, ZC, SSC, WL, VAR
+#define NUM_FREQ_FEATURES                4      // MNF, MDF, PKF, TTP  
+#define MAX_FEATURES                     128    // Maximum features per vector
+
 /* Error Codes */
 #define SEMG_OK                          0
+#define SEMG_ERROR_INVALID_PARAM         1
+#define SEMG_ERROR_TIMEOUT               2
+#define SEMG_ERROR_PROCESSING_DEADLINE   3
+#define SEMG_ERROR_MEMORY_ALLOCATION     4
+#define SEMG_ERROR_HARDWARE_FAULT        5
 #define SEMG_ERROR_TIMEOUT               1
 #define SEMG_ERROR_DMA                   2
 #define SEMG_ERROR_SPI                   3
