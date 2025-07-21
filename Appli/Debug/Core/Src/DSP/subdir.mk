@@ -7,16 +7,19 @@
 C_SRCS += \
 ../Core/Src/DSP/filter_chain.c \
 ../Core/Src/DSP/freq_features.c \
+../Core/Src/DSP/missing_dsp_functions.c \
 ../Core/Src/DSP/time_features.c 
 
 OBJS += \
 ./Core/Src/DSP/filter_chain.o \
 ./Core/Src/DSP/freq_features.o \
+./Core/Src/DSP/missing_dsp_functions.o \
 ./Core/Src/DSP/time_features.o 
 
 C_DEPS += \
 ./Core/Src/DSP/filter_chain.d \
 ./Core/Src/DSP/freq_features.d \
+./Core/Src/DSP/missing_dsp_functions.d \
 ./Core/Src/DSP/time_features.d 
 
 
@@ -27,7 +30,7 @@ Core/Src/DSP/%.o Core/Src/DSP/%.su Core/Src/DSP/%.cyclo: ../Core/Src/DSP/%.c Cor
 clean: clean-Core-2f-Src-2f-DSP
 
 clean-Core-2f-Src-2f-DSP:
-	-$(RM) ./Core/Src/DSP/filter_chain.cyclo ./Core/Src/DSP/filter_chain.d ./Core/Src/DSP/filter_chain.o ./Core/Src/DSP/filter_chain.su ./Core/Src/DSP/freq_features.cyclo ./Core/Src/DSP/freq_features.d ./Core/Src/DSP/freq_features.o ./Core/Src/DSP/freq_features.su ./Core/Src/DSP/time_features.cyclo ./Core/Src/DSP/time_features.d ./Core/Src/DSP/time_features.o ./Core/Src/DSP/time_features.su
+	-$(RM) ./Core/Src/DSP/filter_chain.cyclo ./Core/Src/DSP/filter_chain.d ./Core/Src/DSP/filter_chain.o ./Core/Src/DSP/filter_chain.su ./Core/Src/DSP/freq_features.cyclo ./Core/Src/DSP/freq_features.d ./Core/Src/DSP/freq_features.o ./Core/Src/DSP/freq_features.su ./Core/Src/DSP/missing_dsp_functions.cyclo ./Core/Src/DSP/missing_dsp_functions.d ./Core/Src/DSP/missing_dsp_functions.o ./Core/Src/DSP/missing_dsp_functions.su ./Core/Src/DSP/time_features.cyclo ./Core/Src/DSP/time_features.d ./Core/Src/DSP/time_features.o ./Core/Src/DSP/time_features.su
 
 .PHONY: clean-Core-2f-Src-2f-DSP
 
