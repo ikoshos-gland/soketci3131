@@ -1,0 +1,3 @@
+C:/Users/MERT/STM32CubeIDE/workspace_1.18.0/pin_assign/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_spi_ex.c:74:19:HAL_SPIEx_FlushRxFifo	32	static
+C:/Users/MERT/STM32CubeIDE/workspace_1.18.0/pin_assign/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_spi_ex.c:113:19:HAL_SPIEx_EnableLockConfiguration	24	static
+C:/Users/MERT/STM32CubeIDE/workspace_1.18.0/pin_assign/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_spi_ex.c:162:19:HAL_SPIEx_ConfigureUnderrun	32	static
