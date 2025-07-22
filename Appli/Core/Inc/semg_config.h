@@ -152,6 +152,26 @@ extern performance_metrics_t g_performance_metrics;
 #define END_TIMING(var)    do {} while(0)
 #endif
 
+/* MAX78000 Interface Configuration */
+#define MAX78000_FEATURES_COUNT          64      // Optimized feature count
+#define MAX78000_PACKET_SIZE             68      // Header + features + checksum
+#define MAX78000_SPI_SPEED               10000000 // 10MHz for inter-MCU communication
+
+/* MAX78000 Data Structures */
+typedef struct {
+    uint8_t header;                              // 0xAA sync byte
+    uint16_t sequence;                           // Frame counter
+    int8_t features[MAX78000_FEATURES_COUNT];    // Quantized features
+    uint8_t checksum;                            // XOR checksum
+} __attribute__((packed)) max78000_packet_t;
+
+typedef struct {
+    float32_t scale_factors[MAX78000_FEATURES_COUNT]; // Per-feature scaling
+    float32_t min_values[MAX78000_FEATURES_COUNT];    // Per-feature minimums
+    float32_t max_values[MAX78000_FEATURES_COUNT];    // Per-feature maximums
+    uint32_t update_count;                            // Statistics update counter
+} feature_stats_t;
+
 /* Debug Macros */
 #if ENABLE_UART_DEBUG
 #define DEBUG_PRINT(msg)   UART_Transmit(msg)

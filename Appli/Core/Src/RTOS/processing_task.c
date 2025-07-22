@@ -9,6 +9,7 @@
 #include "task_manager.h"
 #include "dsp_pipeline.h"
 #include "ads1299_driver.h"
+#include "max78000_interface.h"
 #include <string.h>
 
 /* Private Variables */
@@ -109,7 +110,19 @@ void ProcessingTask(void *pvParameters)
             
             processing_count++;
             
-            // Send results to streaming task (non-blocking)
+            // Update feature statistics for adaptive quantization
+            MAX78000_UpdateFeatureStats(&current_features);
+            
+            // Extract optimized features and send to MAX78000
+            static max78000_packet_t ai_packet;
+            HAL_StatusTypeDef ai_result = MAX78000_ExtractOptimizedFeatures(&current_features, &ai_packet);
+            
+            if (ai_result == HAL_OK) {
+                // Transmit to MAX78000 (non-blocking)
+                MAX78000_TransmitPacket(&ai_packet);
+            }
+            
+            // Send results to streaming task (non-blocking) - legacy support
             if (g_streaming_enabled) {
                 if (xQueueSend(FeatureResultQueue, &current_features, 0) != pdTRUE) {
                     // Streaming queue full - not critical, just drop data

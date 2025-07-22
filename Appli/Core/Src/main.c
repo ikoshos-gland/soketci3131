@@ -25,6 +25,7 @@
 #include "ads1299_driver.h"
 #include "dsp_pipeline.h"
 #include "task_manager.h"
+#include "max78000_interface.h"
 
 /* USER CODE END Includes */
 
@@ -48,8 +49,10 @@
 COM_InitTypeDef BspCOMInit;
 
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;  // SPI2 for MAX78000 communication
 DMA_HandleTypeDef handle_GPDMA1_Channel1;
 DMA_HandleTypeDef handle_GPDMA1_Channel0;
+DMA_HandleTypeDef handle_GPDMA1_Channel3;  // DMA for SPI2
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef handle_GPDMA1_Channel2;
@@ -62,6 +65,7 @@ DMA_HandleTypeDef handle_GPDMA1_Channel2;
 static void MX_GPIO_Init(void);
 static void MX_GPDMA1_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_SPI2_Init(void);  // SPI2 initialization for MAX78000
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -111,6 +115,7 @@ int main(void)
   MX_GPIO_Init();
   MX_GPDMA1_Init();
   MX_SPI1_Init();
+  MX_SPI2_Init();  // Initialize SPI2 for MAX78000
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   // Initialize our sEMG system
@@ -124,7 +129,12 @@ int main(void)
 
   if ( TaskManager_Init () != HAL_OK ) {
 	  Error_Handler () ;
-}
+  }
+
+  // Initialize MAX78000 interface
+  if ( MAX78000_Interface_Init(&hspi2) != HAL_OK ) {
+	  Error_Handler();
+  }
 
   /* USER CODE END 2 */
 
@@ -181,6 +191,8 @@ static void MX_GPDMA1_Init(void)
     HAL_NVIC_EnableIRQ(GPDMA1_Channel1_IRQn);
     HAL_NVIC_SetPriority(GPDMA1_Channel2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(GPDMA1_Channel2_IRQn);
+    HAL_NVIC_SetPriority(GPDMA1_Channel3_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(GPDMA1_Channel3_IRQn);
 
   /* USER CODE BEGIN GPDMA1_Init 1 */
 
@@ -288,6 +300,54 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
+ * @brief SPI2 Initialization Function for MAX78000 Communication
+ * @param None
+ * @retval None
+ */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64; // 600MHz/64 = 9.375MHz (safe for MAX78000)
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 0x7;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+  hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+  hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+  hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+  hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+  hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+  hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+  hspi2.Init.ReadyMasterManagement = SPI_RDY_MASTER_MANAGEMENT_INTERNALLY;
+  hspi2.Init.ReadyPolarity = SPI_RDY_POLARITY_HIGH;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -303,6 +363,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();  // Enable GPIOC for SPI2
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -338,6 +399,40 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  
+  /* Configure MAX78000 SPI2 Control Pins */
+  
+  /* SPI2 SCK Pin (PC7) */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  
+  /* SPI2 MOSI Pin (PC3) */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  
+  /* SPI2 MISO Pin (PC2) */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  
+  /* MAX78000 CS Pin (PC1) - Output, High by default */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET);
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
